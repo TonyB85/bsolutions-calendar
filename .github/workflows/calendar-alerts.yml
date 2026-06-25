@@ -95,7 +95,7 @@ jobs:
               return Math.round((d - today) / (1000 * 60 * 60 * 24));
             }
 
-            const windows = [30, 14, 7];
+            const windows = [90, 60, 30, 14, 7];
             const alerts = [];
 
             EVENTS.forEach(ev => {
@@ -150,10 +150,10 @@ jobs:
               </div>
               <div class="body">`;
 
-            [7, 14, 30].forEach(window => {
+            [7, 14, 30, 60, 90].forEach(window => {
               const windowAlerts = alerts.filter(a => a.daysUntil === window);
               if (!windowAlerts.length) return;
-              const label = window === 7 ? '⚠️ In 7 days' : window === 14 ? '📅 In 14 days' : '🗓️ In 30 days';
+              const label = window === 7 ? '⚠️ In 7 days' : window === 14 ? '📅 In 14 days' : window === 30 ? '🗓️ In 30 days' : window === 60 ? '📆 In 60 days' : '🔭 In 90 days';
               htmlBody += `<div class="section-header">${label}</div>`;
               windowAlerts.forEach(ev => {
                 const badgeClass = window === 7 ? 'urgent' : window === 14 ? 'soon' : '';
@@ -189,7 +189,11 @@ jobs:
               ? `🔴 b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===7).length} event(s) in 7 days`
               : alerts.some(a => a.daysUntil === 14)
               ? `🟡 b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===14).length} event(s) in 14 days`
-              : `🗓️ b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===30).length} event(s) in 30 days`;
+              : alerts.some(a => a.daysUntil === 30)
+              ? `🗓️ b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===30).length} event(s) in 30 days`
+              : alerts.some(a => a.daysUntil === 60)
+              ? `📆 b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===60).length} event(s) in 60 days`
+              : `🔭 b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===90).length} event(s) in 90 days`;
 
             await transporter.sendMail({
               from: `"b.solutions Calendar" <${process.env.GMAIL_USER}>`,
