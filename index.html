@@ -16,7 +16,7 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F4F7;color:#
 .header-left h1 span{color:#FC664A;font-weight:400}
 .header-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px}
 .header-right{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.ics-btn{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11px;font-weight:500;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;transition:background 0.15s}
+
 .ics-btn:hover{background:rgba(255,255,255,0.2)}
 
 /* ── COUNTDOWN PANEL ── */
@@ -120,6 +120,10 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F4F7;color:#
 .toggle-critical-btn.is-critical{border-color:#D0D0DC;background:#F8F8FB;color:#666688}
 .toggle-critical-btn.is-critical:hover{background:#E0E0EC;color:#26284A}
 .modal-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #F0F0F8;margin-top:10px}
+
+/* ── LOCALSTORAGE NOTE ── */
+.ls-note{font-size:10px;color:#AAAACC;display:flex;align-items:center;gap:5px;padding:6px 24px 2px}
+.ls-dot{width:6px;height:6px;border-radius:50%;background:#F7D08A;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -130,8 +134,6 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F4F7;color:#
     <div class="header-sub">Internal use only &nbsp;·&nbsp; Retail events, platform windows &amp; financial deadlines &nbsp;·&nbsp; Click any event for full detail</div>
   </div>
   <div class="header-right">
-    <button class="ics-btn" onclick="exportICS()">Export critical events (.ics)</button>
-    <button class="ics-btn" onclick="exportAllICS()">Export all events (.ics)</button>
   </div>
 </div>
 
@@ -148,10 +150,11 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F4F7;color:#
 <div class="countdown-panel">
   <div class="countdown-header" onclick="toggleCountdown()">
     <div class="countdown-header-left">
-      <span class="countdown-title">Upcoming events — next 60 days</span>
+      <span class="countdown-title">Upcoming events — next 90 days</span>
       <span class="countdown-toggle-hint" id="countdownHint">▾ collapse</span>
     </div>
   </div>
+  <div class="ls-note"><span class="ls-dot"></span>Critical flag changes are saved on this device. — device-specific</div>
   <div class="countdown-body" id="countdownBody"></div>
 </div>
 
@@ -239,7 +242,6 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F4F7;color:#
       </div>
       <div class="modal-actions">
         <button class="toggle-critical-btn" id="toggleCriticalBtn" onclick="toggleCritical()"></button>
-        <button class="action-btn" id="modalIcsBtn" onclick="exportSingleICS()">Add to calendar (.ics)</button>
       </div>
     </div>
   </div>
@@ -316,7 +318,7 @@ const EVENTS_DATA = [
   filterKeys:["all","ZA","IN","SG","UK","DE","Shopee","Lazada","Flipkart"],
   platforms:["Shopee","Lazada","Flipkart","Meesho","Amazon"],
   markets:["ZA","IN","SG","UK","DE"],
-  desc:"Ramadan 2026 runs 18 Feb – 19 Mar. Spending increases toward Eid al-Fitr. Food, modest fashion, gifts and home décor perform well.",
+  desc:"Ramadan 2026 runs 18 Feb – ~19 Mar (end dependent on moon sighting, Eid al-Fitr expected Fri 20 Mar). Spending increases steadily throughout, spiking sharply at Eid. Food, modest fashion, gifts and home décor perform well.",
   impact:"SEA and South Asian marketplace volumes rise gradually through Ramadan, spiking sharply at Eid. Shopee and Lazada run significant Ramadan promotions.",
   action:"Ensure Shopee/Lazada integrations for relevant clients are healthy going into this period. Monitor for any promotional feed/inventory sync issues as SEA platforms scale up activity." },
 
@@ -357,7 +359,7 @@ const EVENTS_DATA = [
   impact:"Standard volume uplift for UK/IE clients. Etsy personalised gift integrations may see higher order flow.",
   action:"No specific integration action required. Note for any UK/IE client communications." },
 
-{ month:2, name:"Eid al-Fitr (end of Ramadan)", date:"~Thu 19 Mar 2026", startDate:"2026-03-19", endDate:"2026-03-21",
+{ month:2, name:"Eid al-Fitr (end of Ramadan)", date:"~Fri 20 Mar 2026 (moon-sighting dependent)", startDate:"2026-03-20", endDate:"2026-03-21",
   tier:"high", isCritical:false,
   filterKeys:["all","ZA","IN","SG","UK","DE","Shopee","Lazada","Flipkart"],
   platforms:["Shopee","Lazada","Flipkart","Meesho","Amazon"],
@@ -496,23 +498,23 @@ const EVENTS_DATA = [
   action:"Review accounting integration reconciliation for Q2 for UK clients ahead of this deadline." },
 
 // ═══ JULY ═══
-{ month:6, name:"Amazon Prime Day", date:"~8–11 Jul 2026 (TBC)", startDate:"2026-07-08", endDate:"2026-07-11",
+{ month:5, name:"Amazon Prime Day", date:"23–26 Jun 2026 (confirmed)", startDate:"2026-06-23", endDate:"2026-06-26",
   tier:"critical", isCritical:true,
   filterKeys:["all","US","UK","CA","AU","DE","IE","JP","IN","SG","Amazon","critical"],
   platforms:["Amazon","Walmart","Target","Shopify"],
-  markets:["US","UK","CA","AU","DE","IE","JP","IN","SG"],
-  desc:"Amazon's flagship annual 2-day sale. One of the highest integration stress events of the year — traffic and order volumes spike to near-BFCM levels across all Amazon markets globally. Walmart and Target run rival events simultaneously.",
-  impact:"Amazon Seller Central API rate limits are under extreme pressure during Prime Day. Inventory sync, order download and fulfilment update integrations for all Amazon-connected clients will face higher error rates if not carefully managed. Shopify stores running parallel promotions also see traffic spikes.",
-  action:"⚠️ CRITICAL EVENT. Ensure all Amazon integrations are healthy 1 week before. Increase sync frequency for inventory and order integrations. Set up monitoring alerts for API errors. Do not deploy any changes to Amazon integrations from 5 Jul – 14 Jul. Have support coverage in place for the 2-day event and the 3 days following." },
+  markets:["US","UK","CA","AU","DE","IE","JP","IN","SG","ZA","FR","DE","IT","ES"],
+  desc:"Amazon Prime Day 2026 runs 23–26 June — confirmed 4-day event, moved from its usual July slot (last held in June in 2021). Covers 26 countries including US, UK, CA, AU, DE, IE, SG and ZA. AU, BR, IN and JP join later in summer. Walmart and Target run rival events simultaneously.",
+  impact:"Amazon Seller Central API rate limits are under extreme pressure during Prime Day. Inventory sync, order download and fulfilment update integrations for all Amazon-connected clients will face higher error rates if not carefully managed. Shopify stores running parallel promotions also see significant traffic spikes. Note: Prime Day is now in June 2026 — earlier than expected.",
+  action:"⚠️ CRITICAL EVENT. Ensure all Amazon integrations are healthy by 18 June. Increase sync frequency for inventory and order integrations from 22 June. Set up monitoring alerts for API errors. No changes to Amazon integrations 20–29 June. Have support coverage in place across all 4 days and the 3 days following." },
 
-{ month:6, name:"Shopify code freeze recommended (Prime Day week)", date:"~5–14 Jul 2026", startDate:"2026-07-05", endDate:"2026-07-14",
+{ month:5, name:"Shopify code freeze recommended (Prime Day week)", date:"~20–29 Jun 2026", startDate:"2026-06-20", endDate:"2026-06-29",
   tier:"platform", isCritical:false,
   filterKeys:["all","platform","Shopify"],
   platforms:["Shopify"],
   markets:[],
-  desc:"Best practice: implement a code freeze on all Shopify-connected client stores and integrations from approximately 5 July through to 14 July, encompassing the Prime Day window. Any theme edits, app installations or integration changes during this period risk impacting client revenue.",
+  desc:"Best practice: implement a code freeze on all Shopify-connected client stores and integrations from approximately 20 June through to 29 June, encompassing the Prime Day 2026 window (23–26 June). Any theme edits, app installations or integration changes during this period risk impacting client revenue.",
   impact:"Deployments during peak periods risk breaking checkout or inventory sync at exactly the wrong moment.",
-  action:"Communicate to all project teams: no Shopify deployments for active clients 5–14 July without explicit sign-off. This includes b.solutions apps and integration updates." },
+  action:"Communicate to all project teams: no Shopify deployments for active clients 20–29 June without explicit sign-off. This includes b.solutions apps and integration updates." },
 
 { month:6, name:"Japan Summer Sale season", date:"Jul 2026", startDate:"2026-07-01", endDate:"2026-07-31",
   tier:"standard", isCritical:false,
@@ -598,21 +600,21 @@ const EVENTS_DATA = [
   impact:"CN warehouse and supplier integrations will be slower 1–7 Oct. Pre-holiday sales spike on CN platforms 25 Sep – 1 Oct.",
   action:"Do not schedule CN integration deployments 1–7 Oct. Notify clients with CN supply chains to pre-position stock before 28 Sep." },
 
-{ month:9, name:"Diwali", date:"~Thu 29 Oct 2026", startDate:"2026-10-20", endDate:"2026-10-31",
+{ month:10, name:"Diwali", date:"Sun 8 Nov 2026 (5-day festival 6–10 Nov)", startDate:"2026-11-06", endDate:"2026-11-10",
   tier:"high", isCritical:false,
   filterKeys:["all","IN","SG","UK","ZA","Flipkart","Meesho","Amazon"],
   platforms:["Flipkart","Meesho","Amazon IN","Shopify"],
   markets:["IN","SG","UK","ZA"],
-  desc:"India's biggest retail event. Flipkart Big Billion Days and Amazon Great Indian Festival run in the 2 weeks before Diwali. Electronics, jewellery, apparel and home furnishings spike massively.",
-  impact:"Flipkart and Amazon IN integrations will be under extreme load during Big Billion Days/Great Indian Festival (typically mid–late October). This is India's equivalent of BFCM.",
-  action:"Ensure Flipkart and Amazon IN integrations are robust and monitored during the Diwali sale period. Be on heightened support readiness for Indian market clients 15–31 October." },
+  desc:"India's biggest retail event. Main day (Lakshmi Puja) is Sunday 8 November 2026; the 5-day festival runs 6–10 November. Flipkart Big Billion Days and Amazon Great Indian Festival typically run in the 2 weeks before Diwali (late October). Electronics, jewellery, apparel and home furnishings spike massively.",
+  impact:"Flipkart and Amazon IN integrations will be under extreme load during Big Billion Days/Great Indian Festival (late October) and through Diwali week (6–10 Nov). This is India's equivalent of BFCM and it falls in the same month as 11.11 and BFCM in 2026 — November is the most intensive month of the year.",
+  action:"Ensure Flipkart and Amazon IN integrations are robust and monitored from late October. Be on heightened support readiness for Indian market clients 25 Oct – 10 Nov. Note that Diwali, 11.11 and the start of BFCM season all fall within November 2026." },
 
 { month:9, name:"BFCM preparation — client readiness window", date:"Oct 2026 (ongoing)", startDate:"2026-10-01", endDate:"2026-10-31",
   tier:"platform", isCritical:false,
   filterKeys:["all","platform","Shopify","Brightpearl"],
   platforms:["Shopify","Brightpearl","Peoplevox","Amazon"],
   markets:[],
-  desc:"October is the critical preparation window for BFCM. All Shopify client stores and integrations should be tested and finalised before the end of October. Code freeze should be planned for early November.",
+  desc:"October is the critical preparation window for BFCM. All Shopify client stores and integrations should be tested and finalised before the end of October. Code freeze should be planned for early November. Note: Amazon Prime Big Deal Days (Fall Prime Day) is expected in October 2026 — exact dates TBC, typically early-mid October.",
   impact:"Any integration issues discovered in October can still be resolved before BFCM. Issues discovered in November carry high risk.",
   action:"Conduct BFCM readiness reviews with all clients by end of October. Test all Shopify integrations, discount/promotional logic, inventory sync accuracy and order flow. Plan client-specific code freeze dates for early November." },
 
@@ -740,14 +742,14 @@ function renderCountdown(){
   const now=today();
   now.setHours(0,0,0,0);
   const horizon=new Date(now);
-  horizon.setDate(horizon.getDate()+60);
+  horizon.setDate(horizon.getDate()+90);
   const upcoming=EVENTS_DATA.filter(e=>{
     const s=new Date(e.startDate);
     s.setHours(0,0,0,0);
     return s>=now && s<=horizon;
   }).sort((a,b)=>new Date(a.startDate)-new Date(b.startDate));
   if(!upcoming.length){
-    body.innerHTML='<div style="padding:8px 0;font-size:12px;color:#9999BB;">No events in the next 60 days.</div>';
+    body.innerHTML='<div style="padding:8px 0;font-size:12px;color:#9999BB;">No events in the next 90 days.</div>';
     return;
   }
   upcoming.slice(0,8).forEach(ev=>{
@@ -859,39 +861,58 @@ function closeModal(e){if(e.target===document.getElementById('modalOverlay'))clo
 function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');openEventIdx=null;}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
 
-// ── ICS EXPORT ───────────────────────────────────────────────────────────────
-function toICSDate(dateStr){return dateStr.replace(/-/g,'');}
-function buildICS(events){
-  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//b.solutions//Retail Calendar 2026//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
-  events.forEach(ev=>{
-    const uid=ev.name.replace(/\W+/g,'-').toLowerCase()+'-'+ev.startDate+'@bsolutions';
-    const desc=(ev.impact||'')+(ev.action?'\\n\\nActions: '+ev.action:'');
-    const start=toICSDate(ev.startDate);
-    const end=ev.endDate?toICSDate(ev.endDate):start;
-    lines.push("BEGIN:VEVENT");
-    lines.push("UID:"+uid);
-    lines.push("DTSTART;VALUE=DATE:"+start);
-    lines.push("DTEND;VALUE=DATE:"+end);
-    lines.push("SUMMARY:[b.solutions] "+ev.name);
-    lines.push("DESCRIPTION:"+desc.replace(/\n/g,'\\n').replace(/,/g,'\\,'));
-    lines.push("CATEGORIES:"+TIER_LABELS[ev.tier]);
-    if(ev.isCritical)lines.push("PRIORITY:1");
-    lines.push("END:VEVENT");
+
+
+// ── LOCALSTORAGE PERSISTENCE ─────────────────────────────────────────────────
+const LS_KEY = 'bsolutions_critical_flags_2026';
+
+function saveCriticalFlags() {
+  try {
+    const flags = EVENTS_DATA.map(e => e.isCritical);
+    localStorage.setItem(LS_KEY, JSON.stringify(flags));
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+function loadCriticalFlags() {
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (!saved) return;
+    const flags = JSON.parse(saved);
+    flags.forEach((flag, idx) => {
+      if (EVENTS_DATA[idx] !== undefined) {
+        EVENTS_DATA[idx].isCritical = flag;
+      }
+    });
+  } catch(e) { /* ignore parse errors */ }
+}
+
+// Patch toggleCritical to also save
+const _origToggleCritical = toggleCritical;
+toggleCritical = function() {
+  if (openEventIdx === null) return;
+  EVENTS_DATA[openEventIdx].isCritical = !EVENTS_DATA[openEventIdx].isCritical;
+  saveCriticalFlags();
+  openModal(openEventIdx);
+  renderCalendar();
+  renderCountdown();
+};
+
+
+function copyUrl(inputId, btnId) {
+  const input = document.getElementById(inputId);
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.getElementById(btnId);
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    input.select();
+    document.execCommand('copy');
   });
-  lines.push("END:VCALENDAR");
-  return lines.join("\r\n");
 }
-function download(content,filename){
-  const blob=new Blob([content],{type:'text/calendar;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
-  URL.revokeObjectURL(url);
-}
-function exportICS(){download(buildICS(EVENTS_DATA.filter(e=>e.isCritical)),'bsolutions_critical_2026.ics');}
-function exportAllICS(){download(buildICS(EVENTS_DATA),'bsolutions_all_events_2026.ics');}
-function exportSingleICS(){if(openEventIdx!==null)download(buildICS([EVENTS_DATA[openEventIdx]]),'bsolutions_event.ics');}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
+loadCriticalFlags();
 renderCalendar();
 renderCountdown();
 </script>
