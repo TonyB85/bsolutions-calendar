@@ -34,7 +34,7 @@ jobs:
 
             const EVENTS = [
               // ── TEST EVENT — REMOVE AFTER CONFIRMING EMAIL WORKS ──
-              { name:"⚡ TEST — Weekly digest working correctly", date:"Test event — delete after confirming", startDate:"2026-06-25", tier:"critical", isCritical:true, action:"This is a test event to confirm the weekly digest is working. If you received this, it works! Remove the test event from the workflow file." },
+              { name:"⚡ TEST — Daily alert working correctly", date:"Test event — delete after confirming", startDate:"2026-07-02", tier:"critical", isCritical:true, action:"This is a test event to confirm the weekly digest is working. If you received this, it works! Remove the test event from the workflow file." },
               { name:"New Year's Day sales", date:"1–7 Jan 2026", startDate:"2026-01-01", tier:"high", isCritical:false, action:"Ensure client integrations are running cleanly after the Christmas peak." },
               { name:"NetSuite 2026.1 Release Preview opens", date:"~Jan 2026", startDate:"2026-01-15", tier:"platform", isCritical:false, action:"Request Release Preview access for NetSuite client accounts." },
               { name:"Australia Day", date:"Mon 26 Jan 2026", startDate:"2026-01-26", tier:"standard", isCritical:false, action:"Flag to AU/NZ clients running promotions." },
