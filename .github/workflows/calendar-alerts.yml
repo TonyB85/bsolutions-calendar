@@ -17,8 +17,6 @@ jobs:
   # ── DAILY ALERT ─────────────────────────────────────────────────────────────
   daily-alert:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 7 * * *')
-
     steps:
       - name: Install nodemailer
         run: npm install nodemailer
@@ -188,8 +186,6 @@ jobs:
   # ── WEEKLY DIGEST ───────────────────────────────────────────────────────────
   weekly-digest:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 7 * * 1')
-
     steps:
       - name: Install nodemailer
         run: npm install nodemailer
