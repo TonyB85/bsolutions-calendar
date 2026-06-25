@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>b.solutions — Retail Operations Calendar 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F4F7;color:#1A1A2E;font-size:13px;line-height:1.5}
+
+/* ── HEADER ── */
+.header{background:#26284A;color:#fff;padding:18px 24px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.header-left h1{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+.header-left h1 span{color:#FC664A;font-weight:400}
+.header-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px}
+.header-right{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.ics-btn{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11px;font-weight:500;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;transition:background 0.15s}
+.ics-btn:hover{background:rgba(255,255,255,0.2)}
+
+/* ── COUNTDOWN PANEL ── */
+.countdown-panel{background:#fff;border-bottom:1px solid #E0E0EA;padding:0}
+.countdown-header{padding:10px 24px 8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.countdown-header-left{display:flex;align-items:center;gap:8px}
+.countdown-title{font-size:12px;font-weight:600;color:#26284A;text-transform:uppercase;letter-spacing:0.07em}
+.countdown-toggle-hint{font-size:11px;color:#9999BB}
+.countdown-body{padding:0 24px 12px;display:flex;gap:10px;flex-wrap:wrap}
+.countdown-card{border-radius:8px;padding:10px 14px;min-width:180px;flex:1;display:flex;align-items:center;gap:10px;border-left:4px solid transparent;background:#F8F8FC;border:1px solid #E4E4EE;cursor:pointer;transition:filter 0.12s}
+.countdown-card:hover{filter:brightness(0.97)}
+.countdown-days{font-size:22px;font-weight:600;min-width:36px;text-align:right}
+.countdown-days.urgent{color:#D63030}
+.countdown-days.soon{color:#C07000}
+.countdown-days.upcoming{color:#26284A}
+.countdown-info{flex:1}
+.countdown-event{font-size:12px;font-weight:500;color:#26284A;line-height:1.3}
+.countdown-date{font-size:10px;color:#8888AA;margin-top:2px}
+.countdown-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:2px 6px;border-radius:10px;margin-top:4px;display:inline-block}
+.label-critical{background:#FFE8E8;color:#A32020}
+.label-high{background:#FFF4E0;color:#8A5A00}
+.label-standard{background:#EEF3FA;color:#2E4E79}
+.label-platform{background:#F0F0FB;color:#4040A0}
+.label-financial{background:#E8F8F0;color:#1A6640}
+
+/* ── LEGEND ── */
+.legend-bar{background:#26284A;border-top:1px solid rgba(255,255,255,0.08);padding:8px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.legend-label{font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.07em}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.7)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-critical{background:#FC664A}
+.dot-high{background:#F7D08A}
+.dot-standard{background:#00A9A5}
+.dot-platform{background:#7070D0}
+.dot-financial{background:#40B080}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:#fff;border-bottom:1px solid #E0E0EA;padding:10px 24px}
+.filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.filter-row:last-child{margin-bottom:0}
+.filter-group-label{font-size:10px;font-weight:600;color:#26284A;text-transform:uppercase;letter-spacing:0.08em;min-width:64px;flex-shrink:0}
+.filter-btn{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #D0D0DC;background:#F8F8FB;color:#4A4A6A;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.filter-btn:hover{border-color:#26284A;color:#26284A}
+.filter-btn.active{background:#26284A;color:#fff;border-color:#26284A}
+.filter-btn.all-btn.active{background:#FC664A;border-color:#FC664A}
+
+/* ── NOTICE ── */
+.notice{text-align:center;font-size:10px;letter-spacing:0.08em;color:#9999BB;padding:7px 24px;background:#F4F4F7;border-bottom:1px solid #E0E0EA;text-transform:uppercase}
+
+/* ── CALENDAR ── */
+.cal-body{padding:14px 24px 32px}
+.cal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.cal-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.cal-grid{grid-template-columns:1fr}}
+.month-card{background:#fff;border-radius:10px;border:1px solid #E0E0EA;overflow:hidden}
+.month-header{background:#26284A;color:#fff;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px}
+.event-list{padding:7px;display:flex;flex-direction:column;gap:4px;min-height:36px}
+.no-events{font-size:11px;color:#BBBBDD;text-align:center;padding:12px 8px;font-style:italic}
+
+/* ── EVENT ITEMS ── */
+.event-item{border-radius:6px;padding:6px 8px;cursor:pointer;transition:filter 0.12s,transform 0.1s;border-left:3px solid transparent;position:relative}
+.event-item:hover{filter:brightness(0.95);transform:translateX(1px)}
+.event-item.critical{background:#FFF0EC;border-left-color:#FC664A}
+.event-item.high{background:#FEFBF0;border-left-color:#F7D08A}
+.event-item.standard{background:#E8F8F8;border-left-color:#00A9A5}
+.event-item.platform{background:#F2F2FC;border-left-color:#7070D0}
+.event-item.financial{background:#EEFAF4;border-left-color:#40B080}
+.event-name{font-size:11px;font-weight:500;color:#26284A;display:flex;align-items:flex-start;gap:5px;line-height:1.3}
+.event-date{font-size:10px;color:#7777AA;margin-top:2px}
+.critical-star{color:#FC664A;font-size:10px;flex-shrink:0;margin-top:1px}
+.freeze-badge{font-size:9px;background:#F0E8FF;color:#5030A0;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:500}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(38,40,74,0.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(38,40,74,0.25);overflow:hidden;max-height:90vh;display:flex;flex-direction:column}
+.modal-header{padding:16px 20px 12px;border-bottom:1px solid #E8E8F0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0}
+.modal-title{font-size:16px;font-weight:600;color:#26284A;line-height:1.3}
+.modal-date{font-size:11px;color:#8888AA;margin-top:3px}
+.modal-close{background:#F0F0F6;border:none;border-radius:50%;width:26px;height:26px;font-size:15px;cursor:pointer;color:#4A4A6A;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:#E0E0EC}
+.modal-body{padding:14px 20px;overflow-y:auto}
+.modal-section{margin-bottom:13px}
+.modal-section:last-child{margin-bottom:0}
+.modal-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.09em;color:#AAAACC;margin-bottom:5px}
+.modal-section p{font-size:12px;color:#3A3A5A;line-height:1.6}
+.tag-list{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#F0F0F8;color:#3A3A6A;border:1px solid #D8D8EC}
+.tag.platform-tag{background:#EEEEFF;color:#3030A0;border-color:#C8C8F0}
+.tag.financial-tag{background:#EEFAF4;color:#1A6640;border-color:#B0DFC8}
+.tier-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.tier-badge.critical{background:#FFF0EC;color:#C04020}
+.tier-badge.high{background:#FEFBF0;color:#7A6010}
+.tier-badge.standard{background:#E8F8F8;color:#007A77}
+.tier-badge.platform{background:#F2F2FC;color:#4040B0}
+.tier-badge.financial{background:#EEFAF4;color:#1A6640}
+.action-btn{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11px;font-weight:500;padding:5px 12px;border-radius:6px;border:1px solid #D0D0DC;background:#F8F8FB;color:#26284A;cursor:pointer;transition:all 0.15s;margin-top:4px}
+.action-btn:hover{background:#26284A;color:#fff;border-color:#26284A}
+.toggle-critical-btn{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11px;font-weight:500;padding:5px 12px;border-radius:6px;border:1px solid #FC664A;background:#FFF0EC;color:#C04020;cursor:pointer;transition:all 0.15s}
+.toggle-critical-btn:hover{background:#FC664A;color:#fff}
+.toggle-critical-btn.is-critical{border-color:#D0D0DC;background:#F8F8FB;color:#666688}
+.toggle-critical-btn.is-critical:hover{background:#E0E0EC;color:#26284A}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #F0F0F8;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>b.solutions — Retail Operations Calendar <span>2026</span></h1>
+    <div class="header-sub">Internal use only &nbsp;·&nbsp; Retail events, platform windows &amp; financial deadlines &nbsp;·&nbsp; Click any event for full detail</div>
+  </div>
+  <div class="header-right">
+    <button class="ics-btn" onclick="exportICS()">Export critical events (.ics)</button>
+    <button class="ics-btn" onclick="exportAllICS()">Export all events (.ics)</button>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <span class="legend-label">Tier</span>
+  <span class="legend-item"><span class="dot dot-critical"></span> Critical — heightened support alert</span>
+  <span class="legend-item"><span class="dot dot-high"></span> High — monitor &amp; prepare</span>
+  <span class="legend-item"><span class="dot dot-standard"></span> Standard retail event</span>
+  <span class="legend-item"><span class="dot dot-platform"></span> Platform / integration window</span>
+  <span class="legend-item"><span class="dot dot-financial"></span> Financial / compliance deadline</span>
+</div>
+
+<!-- Countdown panel -->
+<div class="countdown-panel">
+  <div class="countdown-header" onclick="toggleCountdown()">
+    <div class="countdown-header-left">
+      <span class="countdown-title">Upcoming events — next 60 days</span>
+      <span class="countdown-toggle-hint" id="countdownHint">▾ collapse</span>
+    </div>
+  </div>
+  <div class="countdown-body" id="countdownBody"></div>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar">
+  <div class="filter-row">
+    <span class="filter-group-label">View</span>
+    <button class="filter-btn all-btn active" onclick="setFilter('all')">All events</button>
+    <button class="filter-btn" onclick="setFilter('critical')">🔴 Critical only</button>
+    <button class="filter-btn" onclick="setFilter('platform')">Platform windows</button>
+    <button class="filter-btn" onclick="setFilter('financial')">Financial deadlines</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-group-label">West</span>
+    <button class="filter-btn" onclick="setFilter('US')">🇺🇸 US</button>
+    <button class="filter-btn" onclick="setFilter('UK')">🇬🇧 UK</button>
+    <button class="filter-btn" onclick="setFilter('CA')">🇨🇦 Canada</button>
+    <button class="filter-btn" onclick="setFilter('AU')">🇦🇺 Australia</button>
+    <button class="filter-btn" onclick="setFilter('NZ')">🇳🇿 New Zealand</button>
+    <button class="filter-btn" onclick="setFilter('DE')">🇩🇪 Germany</button>
+    <button class="filter-btn" onclick="setFilter('IE')">🇮🇪 Ireland</button>
+    <button class="filter-btn" onclick="setFilter('ZA')">🇿🇦 South Africa</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-group-label">Asia</span>
+    <button class="filter-btn" onclick="setFilter('CN')">🇨🇳 China</button>
+    <button class="filter-btn" onclick="setFilter('IN')">🇮🇳 India</button>
+    <button class="filter-btn" onclick="setFilter('JP')">🇯🇵 Japan</button>
+    <button class="filter-btn" onclick="setFilter('KR')">🇰🇷 S. Korea</button>
+    <button class="filter-btn" onclick="setFilter('SG')">🇸🇬 Singapore</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-group-label">Platforms</span>
+    <button class="filter-btn" onclick="setFilter('Brightpearl')">Brightpearl</button>
+    <button class="filter-btn" onclick="setFilter('Shopify')">Shopify</button>
+    <button class="filter-btn" onclick="setFilter('NetSuite')">NetSuite</button>
+    <button class="filter-btn" onclick="setFilter('Cin7')">Cin7</button>
+    <button class="filter-btn" onclick="setFilter('Amazon')">Amazon</button>
+    <button class="filter-btn" onclick="setFilter('eBay')">eBay</button>
+    <button class="filter-btn" onclick="setFilter('Etsy')">Etsy</button>
+    <button class="filter-btn" onclick="setFilter('Walmart')">Walmart</button>
+  </div>
+</div>
+
+<div class="notice">Internal use only — 2026 exact dates · refresh annually · platform windows indicative, confirm with vendor status pages</div>
+
+<div class="cal-body">
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-date" id="modalDate"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-label">Tier</div>
+        <span class="tier-badge" id="modalTier"></span>
+      </div>
+      <div class="modal-section" id="modalDescSection">
+        <div class="modal-section-label">About</div>
+        <p id="modalDesc"></p>
+      </div>
+      <div class="modal-section" id="modalImpactSection">
+        <div class="modal-section-label">Impact on b.solutions &amp; clients</div>
+        <p id="modalImpact"></p>
+      </div>
+      <div class="modal-section" id="modalActionSection">
+        <div class="modal-section-label">Recommended actions</div>
+        <p id="modalAction"></p>
+      </div>
+      <div class="modal-section" id="modalMarketsSection">
+        <div class="modal-section-label">Markets</div>
+        <div class="tag-list" id="modalMarkets"></div>
+      </div>
+      <div class="modal-section" id="modalPlatformsSection">
+        <div class="modal-section-label">Platforms / marketplaces</div>
+        <div class="tag-list" id="modalPlatforms"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="toggle-critical-btn" id="toggleCriticalBtn" onclick="toggleCritical()"></button>
+        <button class="action-btn" id="modalIcsBtn" onclick="exportSingleICS()">Add to calendar (.ics)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── EVENTS DATA ──────────────────────────────────────────────────────────────
+// tier: 'critical' | 'high' | 'standard' | 'platform' | 'financial'
+// isCritical: boolean (can be toggled)
+// startDate: YYYY-MM-DD (for ICS and countdown)
+// endDate: YYYY-MM-DD (optional)
+// filterKeys: array (for filtering)
+
+const EVENTS_DATA = [
+
+// ═══ JANUARY ═══
+{ month:0, name:"New Year's Day sales", date:"1–7 Jan 2026", startDate:"2026-01-01", endDate:"2026-01-07",
+  tier:"high", isCritical:false,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","Amazon","eBay","Etsy","Walmart"],
+  platforms:["Amazon","eBay","Walmart","Etsy","ASOS","Zalando"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA","Global"],
+  desc:"Post-Christmas gift card redemption and self-improvement spending. Strong week for fitness, wellness, tech accessories and lifestyle reset products across all markets.",
+  impact:"Clients will see elevated order volumes and returns from Christmas. Integration throughput (orders, inventory sync) will be high across Shopify/Brightpearl connections. Expect higher support ticket volumes for gift card and returns-related integration queries.",
+  action:"Ensure client integrations are running cleanly after the Christmas peak. Check for any backlogged order queues or sync failures from the holiday period. Good time to schedule any post-peak maintenance that was deferred." },
+
+{ month:0, name:"Brightpearl weekly maintenance window", date:"Every Sunday night (ongoing)", startDate:"2026-01-04", endDate:"2026-12-31",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","Brightpearl"],
+  platforms:["Brightpearl"],
+  markets:[],
+  desc:"Brightpearl publishes a weekly 4-hour scheduled maintenance window, typically Sunday nights. Extended maintenance (up to 8 hours) is scheduled on nights or weekends with 48-hour advance notice per their SLA.",
+  impact:"Any integrations running against the Brightpearl API may experience timeouts or failures during this window. Automated sync jobs scheduled for Sunday nights may fail silently.",
+  action:"Review all client cron/scheduled jobs to ensure none are set to run during Sunday night maintenance windows. Monitor the Brightpearl status page (status.brightpearl.com). Subscribe to their status feed." },
+
+{ month:0, name:"NetSuite 2026.1 Release Preview opens", date:"~Jan 2026", startDate:"2026-01-15",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","NetSuite"],
+  platforms:["NetSuite"],
+  markets:[],
+  desc:"NetSuite makes Release Preview available approximately one month before production upgrades begin (Feb–Apr 2026). Preview gives a copy of client production environments running on the new release for integration testing.",
+  impact:"NetSuite SuiteScript, REST API, and SuiteFlow changes in 2026.1 may affect custom integrations. 2026.1 includes new REST web services enhancements and SuiteCloud Developer Framework changes.",
+  action:"Request access to Release Preview via Setup > Company > Release Preview for any NetSuite client accounts. Test all active integrations and custom scripts against the preview. Flag any breaking changes to the relevant client." },
+
+{ month:0, name:"Australia Day", date:"Mon 26 Jan 2026", startDate:"2026-01-26",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","AU","NZ","Amazon","eBay"],
+  platforms:["Amazon AU","eBay AU"],
+  markets:["AU","NZ"],
+  desc:"Australian national public holiday. Moderate retail moment — BBQ, outdoor and lifestyle products perform well.",
+  impact:"Low direct impact on b.solutions integrations. AU-based clients may see a small volume uptick.",
+  action:"No specific action required. Flag to any AU-based clients running promotions." },
+
+// ═══ FEBRUARY ═══
+{ month:1, name:"Valentine's Day", date:"Sat 14 Feb 2026", startDate:"2026-02-14",
+  tier:"high", isCritical:false,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","CN","IN","JP","KR","SG","Amazon","eBay","Etsy","Walmart"],
+  platforms:["Amazon","eBay","Etsy","Walmart","ASOS","Shopify"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA","CN","IN","JP","KR","SG"],
+  desc:"Major gifting holiday globally. Jewellery, beauty, confectionery and personalised gifts peak. Etsy sees especially high volume for personalised items.",
+  impact:"Order volume spikes 1–2 weeks before on Etsy and Amazon. Inventory sync accuracy is critical — overselling personalised/low-stock items during Valentine's can generate significant customer service issues for clients.",
+  action:"Check inventory sync timing for clients selling personalised or limited-stock gift items. Verify Etsy integrations are processing orders promptly. Ensure any order-splitting or fulfilment automation is handling gift order logic correctly." },
+
+{ month:1, name:"Chinese New Year — Year of the Horse", date:"Tue 17 Feb 2026", startDate:"2026-02-17", endDate:"2026-02-24",
+  tier:"high", isCritical:false,
+  filterKeys:["all","CN","SG","KR","JP","IN","Tmall","JD"],
+  platforms:["Tmall/Taobao","JD.com","Shopee","Lazada","Amazon"],
+  markets:["CN","SG","JP","KR","IN"],
+  desc:"Year of the Horse. One of the most important gifting periods globally. Pre-holiday spending peaks 2–3 weeks before 17 Feb. Significant logistics delays expected from China 17–24 Feb.",
+  impact:"Clients with Chinese supplier integrations or CN marketplace connections (Tmall, JD.com) will see delayed fulfilment updates during the holiday week. Inventory data from CN warehouses may lag.",
+  action:"Warn clients with CN supply chains to pre-position stock before 10 Feb. Expect reduced API responsiveness from CN marketplace platforms 17–24 Feb. Do not schedule major CN integration deployments this week." },
+
+{ month:1, name:"Ramadan begins", date:"Wed 18 Feb 2026", startDate:"2026-02-18", endDate:"2026-03-19",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","ZA","IN","SG","UK","DE","Shopee","Lazada","Flipkart"],
+  platforms:["Shopee","Lazada","Flipkart","Meesho","Amazon"],
+  markets:["ZA","IN","SG","UK","DE"],
+  desc:"Ramadan 2026 runs 18 Feb – 19 Mar. Spending increases toward Eid al-Fitr. Food, modest fashion, gifts and home décor perform well.",
+  impact:"SEA and South Asian marketplace volumes rise gradually through Ramadan, spiking sharply at Eid. Shopee and Lazada run significant Ramadan promotions.",
+  action:"Ensure Shopee/Lazada integrations for relevant clients are healthy going into this period. Monitor for any promotional feed/inventory sync issues as SEA platforms scale up activity." },
+
+{ month:1, name:"NetSuite 2026.1 production rollout begins", date:"Mid-Feb – end Apr 2026", startDate:"2026-02-15", endDate:"2026-04-30",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","NetSuite"],
+  platforms:["NetSuite"],
+  markets:[],
+  desc:"NetSuite 2026.1 production upgrades roll out automatically across accounts mid-February through end of April. Individual account dates vary — visible in the New Release portlet on each account's dashboard. 2026.1 includes AI-enhanced financial management, new REST API enhancements, SuiteCloud developer changes and tightened security defaults.",
+  impact:"SuiteScript customisations, REST integrations and workflows may behave differently post-upgrade. The 2-4 weekends immediately after each account's upgrade date carry a higher regression risk.",
+  action:"Check upgrade dates for all NetSuite client accounts via their dashboards. Test integrations in Release Preview before upgrade dates. Avoid scheduling any NetSuite integration deployments in the 2 weeks after a client's upgrade date. Monitor for unexpected API errors post-upgrade." },
+
+{ month:1, name:"Shopify API 2026-04 preview opens", date:"Feb 2026", startDate:"2026-02-01",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","Shopify"],
+  platforms:["Shopify"],
+  markets:[],
+  desc:"Shopify releases quarterly API versions. The 2026-04 release (active from April) introduces breaking changes including checkout metafield deprecations, discount field restructuring in the Admin API, and new RBAC partner account controls. From April 2026, new public apps must use expiring offline access tokens.",
+  impact:"Shopify integrations using deprecated checkout metafield APIs or discount field structures will break unless updated before April. Expiring token changes affect all partner app authentication flows.",
+  action:"Audit all Shopify app integrations for use of checkout metafields and discount fields. Update authentication flows for expiring token compliance before April 1. Test against the 2026-04 preview environment." },
+
+// ═══ MARCH ═══
+{ month:2, name:"UK Financial Year End", date:"Fri 5 Apr 2026 (approaches)", startDate:"2026-03-01", endDate:"2026-04-05",
+  tier:"financial", isCritical:false,
+  filterKeys:["all","financial","UK","IE"],
+  platforms:["Sage","NetSuite","Xero","QuickBooks"],
+  markets:["UK","IE"],
+  desc:"The UK tax year ends 5 April 2026. The final month of the UK financial year sees accounting systems under heavy load as businesses close their books, run reports and prepare for year-end submissions. VAT quarter ending March is due 7 May.",
+  impact:"Clients using Sage, NetSuite and Xero will be running intensive year-end financial operations. Data export integrations, journal sync and reporting jobs will generate higher than usual API load. Expect more support requests around data reconciliation.",
+  action:"Proactively check in with UK-based clients about year-end accounting needs. Ensure any data export or journal sync integrations are running reliably. This is not a good time to deploy changes to accounting integrations for UK clients." },
+
+{ month:2, name:"Mothering Sunday (UK/IE)", date:"Sun 15 Mar 2026", startDate:"2026-03-15",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","UK","IE","Amazon","eBay","Etsy","ASOS"],
+  platforms:["Amazon UK","eBay UK","ASOS","Etsy"],
+  markets:["UK","IE"],
+  desc:"UK/IE Mother's Day — 3–4 weeks earlier than US/AU date. Flowers, beauty and personalised gifts dominate.",
+  impact:"Standard volume uplift for UK/IE clients. Etsy personalised gift integrations may see higher order flow.",
+  action:"No specific integration action required. Note for any UK/IE client communications." },
+
+{ month:2, name:"Eid al-Fitr (end of Ramadan)", date:"~Thu 19 Mar 2026", startDate:"2026-03-19", endDate:"2026-03-21",
+  tier:"high", isCritical:false,
+  filterKeys:["all","ZA","IN","SG","UK","DE","Shopee","Lazada","Flipkart"],
+  platforms:["Shopee","Lazada","Flipkart","Meesho","Amazon"],
+  markets:["ZA","IN","SG","UK","DE"],
+  desc:"End of Ramadan — sharp gifting spike across Muslim-majority markets and diaspora. Festive fashion, electronics and gift sets peak in the 3-day window.",
+  impact:"Shopee and Lazada see very high order volumes in the 3-day Eid window. Fulfilment integrations for SEA clients will be under stress.",
+  action:"Confirm SEA marketplace integrations are processing orders without delays before Eid. Be on heightened support readiness for Shopee/Lazada clients 17–21 March." },
+
+{ month:2, name:"White Day (Japan / S. Korea)", date:"Sat 14 Mar 2026", startDate:"2026-03-14",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","JP","KR","CN","SG"],
+  platforms:["Amazon JP","Tmall/Taobao"],
+  markets:["JP","KR","CN","SG"],
+  desc:"Reciprocal gifting day in Japan and Korea, one month after Valentine's Day. Confectionery, jewellery and accessories peak.",
+  impact:"Minimal direct impact for most b.solutions clients unless operating in JP/KR markets.",
+  action:"No specific action for most clients." },
+
+{ month:2, name:"Holi", date:"~Fri 20 Mar 2026", startDate:"2026-03-20",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","IN","SG","UK","Flipkart","Meesho"],
+  platforms:["Flipkart","Meesho","Amazon IN"],
+  markets:["IN","SG","UK"],
+  desc:"Festival of Colours — major retail moment in India. Colour products, apparel and beauty perform well on Flipkart and Meesho.",
+  impact:"Indian marketplace volumes spike. Relevant for clients with Flipkart/Meesho integrations.",
+  action:"Monitor Flipkart/Meesho integration health for Indian market clients around this date." },
+
+// ═══ APRIL ═══
+{ month:3, name:"Shopify API 2026-04 live / expiring tokens mandatory", date:"Wed 1 Apr 2026", startDate:"2026-04-01",
+  tier:"platform", isCritical:true,
+  filterKeys:["all","platform","Shopify"],
+  platforms:["Shopify"],
+  markets:[],
+  desc:"Shopify 2026-04 API goes live. New public apps must use expiring offline access tokens from this date. Checkout metafield deprecations and Admin API discount field restructuring are active.",
+  impact:"Any Shopify integrations not updated to use expiring tokens or the new API structure will experience authentication failures or broken functionality.",
+  action:"All Shopify integrations must be updated before this date. Confirm with dev team that token refresh flows are implemented. Test all checkout and discount-related integration logic against the new API version." },
+
+{ month:3, name:"UK Financial Year End — 5 April", date:"Sun 5 Apr 2026", startDate:"2026-04-05",
+  tier:"financial", isCritical:false,
+  filterKeys:["all","financial","UK","IE"],
+  platforms:["Sage","NetSuite","Xero","QuickBooks","Brightpearl"],
+  markets:["UK","IE"],
+  desc:"End of UK tax year 2025/26. New tax year (2026/27) begins 6 April. New PAYE tax codes, thresholds and rates take effect. MTD for Income Tax begins for self-employed with qualifying income over £50,000.",
+  impact:"UK clients will run year-end closes in Sage, NetSuite and Xero. Journal sync, P&L export and balance sheet integrations will see heavy activity. Making Tax Digital compliance changes may affect Sage/Xero integrations.",
+  action:"Ensure all accounting integrations for UK clients are clean going into year-end. Verify any MTD-related integration paths are compliant with the new thresholds." },
+
+{ month:3, name:"Good Friday", date:"Fri 3 Apr 2026", startDate:"2026-04-03",
+  tier:"high", isCritical:false,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","Amazon","eBay","Walmart","Etsy","ASOS"],
+  platforms:["Amazon","eBay","Walmart","Etsy","ASOS","Zalando","Shopify"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA"],
+  desc:"Starts the 4-day Easter retail peak — one of the biggest windows of the year for food, home, fashion and gifting across Western markets.",
+  impact:"Order volumes across Shopify stores and marketplace integrations will spike significantly. Easter is a genuine integration stress test — high order throughput, gift card usage and delivery deadline sensitivity.",
+  action:"Confirm all client integration pipelines are healthy entering Easter weekend. Be on heightened support availability. Do not deploy integration changes Good Friday through Easter Monday." },
+
+{ month:3, name:"Easter Sunday / Monday", date:"Sun–Mon 5–6 Apr 2026", startDate:"2026-04-05", endDate:"2026-04-06",
+  tier:"high", isCritical:false,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","Amazon","eBay","Walmart"],
+  platforms:["Amazon","eBay","Walmart","Shopify","ASOS"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA"],
+  desc:"Peak of the Easter retail period. Post-Easter Monday clearance begins.",
+  impact:"Continued high integration throughput. Fulfilment integrations (Peoplevox, ShipBob) will be under sustained load across the 4-day weekend.",
+  action:"No deployments Easter Friday–Monday. Ensure on-call support awareness. WMS/3PL integrations (Peoplevox, Mintsoft) should be monitored for queue backlogs." },
+
+{ month:3, name:"Anzac Day (AU/NZ)", date:"Sat 25 Apr 2026", startDate:"2026-04-25",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","AU","NZ"],
+  platforms:["Amazon AU","eBay AU"],
+  markets:["AU","NZ"],
+  desc:"Public holiday in AU/NZ. Trading restrictions in some Australian states. Generally a quiet retail day.",
+  impact:"Low impact. AU/NZ logistics may be slower.",
+  action:"Flag to AU/NZ clients. No specific integration action." },
+
+// ═══ MAY ═══
+{ month:4, name:"UK VAT Q1 return due (Jan–Mar quarter)", date:"Thu 7 May 2026", startDate:"2026-05-07",
+  tier:"financial", isCritical:false,
+  filterKeys:["all","financial","UK","IE"],
+  platforms:["Sage","Xero","QuickBooks","NetSuite","Brightpearl"],
+  markets:["UK","IE"],
+  desc:"VAT return and payment due for UK businesses with a quarterly period ending 31 March 2026 (Stagger 1). Filing deadline: 7 May 2026.",
+  impact:"Clients using Sage, Xero or NetSuite for VAT reporting will need clean transaction data exports. Integration data quality issues that went unnoticed during the quarter become very visible at VAT return time.",
+  action:"Proactively check with UK clients that their Sage/Xero/NetSuite accounting integrations are reconciled for the Jan–Mar period. Any sync gaps or duplicate transactions will surface here." },
+
+{ month:4, name:"Mother's Day (US / CA / AU / most EU)", date:"Sun 10 May 2026", startDate:"2026-05-10",
+  tier:"high", isCritical:false,
+  filterKeys:["all","US","CA","AU","NZ","DE","ZA","Amazon","eBay","Etsy","Walmart"],
+  platforms:["Amazon","eBay","Etsy","Walmart","ASOS","Zalando","Shopify"],
+  markets:["US","CA","AU","NZ","DE","ZA"],
+  desc:"One of the biggest gifting events of the year. Note UK/IE Mother's Day was 15 March. Flowers, beauty, jewellery and personalised gifts dominate.",
+  impact:"Significant Shopify and marketplace order volume spike. Etsy in particular sees very high personalised gift order volumes requiring prompt fulfilment.",
+  action:"Monitor order processing pipelines for Etsy-connected clients 7–10 May. Ensure inventory sync is running accurately to prevent overselling." },
+
+{ month:4, name:"Golden Week (Japan)", date:"29 Apr – 5 May 2026", startDate:"2026-04-29", endDate:"2026-05-05",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","JP","SG"],
+  platforms:["Amazon JP"],
+  markets:["JP","SG"],
+  desc:"Japan's biggest holiday cluster. Domestic spending high but logistics from Japan slow significantly.",
+  impact:"Clients with JP market connections or Japanese supplier integrations should expect delayed API responses and fulfilment updates.",
+  action:"Notify relevant clients of expected JP logistics delays. Do not schedule JP integration deployments 29 Apr – 5 May." },
+
+{ month:4, name:"Memorial Day (US)", date:"Mon 25 May 2026", startDate:"2026-05-25",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","US","Amazon","eBay","Walmart"],
+  platforms:["Amazon","Walmart","eBay"],
+  markets:["US"],
+  desc:"US federal holiday and major mid-year sales weekend. Outdoor, home, apparel and electronics peak.",
+  impact:"US-facing Shopify stores and Amazon/Walmart integrations will see elevated order volumes over the long weekend.",
+  action:"Standard monitoring for US-market clients." },
+
+// ═══ JUNE ═══
+{ month:5, name:"618 Festival (China e-commerce)", date:"1–18 Jun 2026", startDate:"2026-06-01", endDate:"2026-06-18",
+  tier:"high", isCritical:false,
+  filterKeys:["all","CN","SG","KR","JP","Tmall","JD"],
+  platforms:["JD.com","Tmall/Taobao","Pinduoduo","Shopee","Lazada"],
+  markets:["CN","SG","JP","KR"],
+  desc:"JD.com's mid-year mega sale, now an event across all Chinese platforms. Second biggest shopping event in China after 11.11. Pre-sale campaigns from early June.",
+  impact:"CN marketplace API throughput is extremely high throughout the period. JD.com and Tmall integrations for clients operating in China will see very high order/inventory sync loads.",
+  action:"Ensure CN marketplace integrations have sufficient rate limit headroom. Pre-position any inventory sync jobs to run more frequently during this period. CN logistics should be pre-arranged before 1 June." },
+
+{ month:5, name:"Father's Day (UK / IE / AU / NZ + US / CA)", date:"Sun 21 Jun 2026", startDate:"2026-06-21",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","UK","IE","AU","NZ","US","CA","Amazon","eBay","Etsy","Walmart"],
+  platforms:["Amazon","eBay","Etsy","Walmart","ASOS"],
+  markets:["UK","IE","AU","NZ","US","CA"],
+  desc:"In 2026 Father's Day coincides across UK/IE/AU/NZ and US/CA — all fall on 21 June. Tech, tools, outdoor and personalised gifts are top categories.",
+  impact:"Standard gifting volume spike. Noteworthy that the coincidence of dates this year amplifies the global lift.",
+  action:"Standard monitoring. Confirm personalised gift integrations on Etsy are processing promptly." },
+
+{ month:5, name:"UK VAT Q2 return due (Apr–Jun quarter)", date:"Sat 8 Aug 2026 (approx)", startDate:"2026-08-07",
+  tier:"financial", isCritical:false,
+  filterKeys:["all","financial","UK","IE"],
+  platforms:["Sage","Xero","QuickBooks","NetSuite"],
+  markets:["UK","IE"],
+  desc:"VAT return and payment due for UK businesses with a quarterly period ending 30 June 2026 (Stagger 1). Filing deadline: 7 August 2026.",
+  impact:"Same as Q1 — data quality issues in accounting integrations become visible at return time.",
+  action:"Review accounting integration reconciliation for Q2 for UK clients ahead of this deadline." },
+
+// ═══ JULY ═══
+{ month:6, name:"Amazon Prime Day", date:"~8–11 Jul 2026 (TBC)", startDate:"2026-07-08", endDate:"2026-07-11",
+  tier:"critical", isCritical:true,
+  filterKeys:["all","US","UK","CA","AU","DE","IE","JP","IN","SG","Amazon","critical"],
+  platforms:["Amazon","Walmart","Target","Shopify"],
+  markets:["US","UK","CA","AU","DE","IE","JP","IN","SG"],
+  desc:"Amazon's flagship annual 2-day sale. One of the highest integration stress events of the year — traffic and order volumes spike to near-BFCM levels across all Amazon markets globally. Walmart and Target run rival events simultaneously.",
+  impact:"Amazon Seller Central API rate limits are under extreme pressure during Prime Day. Inventory sync, order download and fulfilment update integrations for all Amazon-connected clients will face higher error rates if not carefully managed. Shopify stores running parallel promotions also see traffic spikes.",
+  action:"⚠️ CRITICAL EVENT. Ensure all Amazon integrations are healthy 1 week before. Increase sync frequency for inventory and order integrations. Set up monitoring alerts for API errors. Do not deploy any changes to Amazon integrations from 5 Jul – 14 Jul. Have support coverage in place for the 2-day event and the 3 days following." },
+
+{ month:6, name:"Shopify code freeze recommended (Prime Day week)", date:"~5–14 Jul 2026", startDate:"2026-07-05", endDate:"2026-07-14",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","Shopify"],
+  platforms:["Shopify"],
+  markets:[],
+  desc:"Best practice: implement a code freeze on all Shopify-connected client stores and integrations from approximately 5 July through to 14 July, encompassing the Prime Day window. Any theme edits, app installations or integration changes during this period risk impacting client revenue.",
+  impact:"Deployments during peak periods risk breaking checkout or inventory sync at exactly the wrong moment.",
+  action:"Communicate to all project teams: no Shopify deployments for active clients 5–14 July without explicit sign-off. This includes b.solutions apps and integration updates." },
+
+{ month:6, name:"Japan Summer Sale season", date:"Jul 2026", startDate:"2026-07-01", endDate:"2026-07-31",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","JP","SG"],
+  platforms:["Amazon JP"],
+  markets:["JP","SG"],
+  desc:"Japanese natsu seru (summer sales) across fashion, electronics and home goods. Significant domestic spending.",
+  impact:"Moderate uplift for JP market clients.",
+  action:"Standard monitoring." },
+
+// ═══ AUGUST ═══
+{ month:7, name:"Back to school (US / CA)", date:"Aug 2026", startDate:"2026-08-01", endDate:"2026-08-31",
+  tier:"high", isCritical:false,
+  filterKeys:["all","US","CA","Amazon","eBay","Walmart"],
+  platforms:["Amazon","Walmart","eBay","Shopify"],
+  markets:["US","CA"],
+  desc:"One of the biggest US retail seasons outside Q4. Stationery, apparel, electronics and dorm essentials drive high volume. Peaks mid-August.",
+  impact:"US-market Shopify and Amazon integrations will see sustained elevated volumes through August. Inventory sync accuracy is important as back-to-school SKUs sell quickly.",
+  action:"Monitor US client integration pipelines through August. Ensure inventory sync is frequent enough to avoid overselling fast-moving SKUs." },
+
+{ month:7, name:"Back to school (UK / EU)", date:"Late Aug – early Sep 2026", startDate:"2026-08-17", endDate:"2026-09-07",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","UK","IE","DE","Amazon","ASOS","Zalando"],
+  platforms:["Amazon UK","ASOS","Zalando","Shopify"],
+  markets:["UK","IE","DE"],
+  desc:"UK school uniform and supplies peak mid-August; EU follows late August.",
+  impact:"Moderate uplift for UK/EU clients in apparel and stationery categories.",
+  action:"Standard monitoring." },
+
+{ month:7, name:"NetSuite 2026.2 release preview opens", date:"~Aug 2026", startDate:"2026-08-01",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","NetSuite"],
+  platforms:["NetSuite"],
+  markets:[],
+  desc:"NetSuite 2026.2 (the second biannual release) is expected in September/October 2026 following Oracle's standard cadence. Release Preview typically opens 4 weeks before production rollout, meaning approximately August.",
+  impact:"Same integration testing requirements as 2026.1. 2026.2 is expected to include Redwood UI moving toward default-on and further AI feature expansion.",
+  action:"Request Release Preview access for NetSuite client accounts in August. Begin integration compatibility testing before September production rollout." },
+
+// ═══ SEPTEMBER ═══
+{ month:8, name:"Labor Day (US / CA)", date:"Mon 7 Sep 2026", startDate:"2026-09-07",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","US","CA","Amazon","Walmart","eBay"],
+  platforms:["Amazon","Walmart","eBay"],
+  markets:["US","CA"],
+  desc:"US/Canadian public holiday — unofficial end of summer. Key sales weekend for outdoor/summer clearance and early autumn products.",
+  impact:"Standard US volume uplift over the long weekend.",
+  action:"Standard monitoring for US-market clients." },
+
+{ month:8, name:"NetSuite 2026.2 production rollout", date:"Sep–Oct 2026 (expected)", startDate:"2026-09-15", endDate:"2026-10-31",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","NetSuite"],
+  platforms:["NetSuite"],
+  markets:[],
+  desc:"NetSuite 2026.2 production upgrades expected to roll out September–October following Oracle's biannual cadence. Exact dates depend on individual account schedules.",
+  impact:"Same regression risk window as 2026.1. The 2-4 weekends post-upgrade carry higher risk of integration issues surfacing.",
+  action:"Monitor NetSuite client account upgrade dates. Avoid scheduling integration deployments within 2 weeks of each client's upgrade date. Test in Release Preview before production upgrades complete." },
+
+{ month:8, name:"Mid-Autumn Festival", date:"~Fri 25 Sep 2026", startDate:"2026-09-25",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","CN","SG","JP","KR","Tmall","JD"],
+  platforms:["Tmall/Taobao","JD.com","Shopee","Lazada"],
+  markets:["CN","SG","JP","KR"],
+  desc:"Major gifting festival. Mooncakes, gift hampers and premium food gifts peak across Chinese-speaking markets and SEA.",
+  impact:"Moderate uplift for CN/SEA marketplace clients.",
+  action:"Standard monitoring." },
+
+{ month:8, name:"UK VAT Q3 return due (Jul–Sep quarter)", date:"Mon 7 Nov 2026", startDate:"2026-11-07",
+  tier:"financial", isCritical:false,
+  filterKeys:["all","financial","UK","IE"],
+  platforms:["Sage","Xero","QuickBooks","NetSuite"],
+  markets:["UK","IE"],
+  desc:"VAT return and payment due for UK businesses with a quarterly period ending 30 September 2026. Filing deadline: 7 November 2026. Note: this falls just before the start of BFCM preparations — timing matters.",
+  impact:"UK clients will be running Q3 VAT reconciliation at the same time as preparing for peak season. Accounting integrations need to be clean.",
+  action:"Proactively check UK client accounting integration health in October. Ensure Q3 data is reconciled before the Nov 7 deadline and before BFCM preparations consume all bandwidth." },
+
+// ═══ OCTOBER ═══
+{ month:9, name:"Golden Week (China)", date:"1–7 Oct 2026", startDate:"2026-10-01", endDate:"2026-10-07",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","CN","SG","JP","KR","Tmall","JD"],
+  platforms:["Tmall/Taobao","JD.com","Shopee","Lazada"],
+  markets:["CN","SG","JP","KR"],
+  desc:"China National Day Golden Week. Pre-holiday spending peaks the week before; logistics from China slow 1–7 Oct.",
+  impact:"CN warehouse and supplier integrations will be slower 1–7 Oct. Pre-holiday sales spike on CN platforms 25 Sep – 1 Oct.",
+  action:"Do not schedule CN integration deployments 1–7 Oct. Notify clients with CN supply chains to pre-position stock before 28 Sep." },
+
+{ month:9, name:"Diwali", date:"~Thu 29 Oct 2026", startDate:"2026-10-20", endDate:"2026-10-31",
+  tier:"high", isCritical:false,
+  filterKeys:["all","IN","SG","UK","ZA","Flipkart","Meesho","Amazon"],
+  platforms:["Flipkart","Meesho","Amazon IN","Shopify"],
+  markets:["IN","SG","UK","ZA"],
+  desc:"India's biggest retail event. Flipkart Big Billion Days and Amazon Great Indian Festival run in the 2 weeks before Diwali. Electronics, jewellery, apparel and home furnishings spike massively.",
+  impact:"Flipkart and Amazon IN integrations will be under extreme load during Big Billion Days/Great Indian Festival (typically mid–late October). This is India's equivalent of BFCM.",
+  action:"Ensure Flipkart and Amazon IN integrations are robust and monitored during the Diwali sale period. Be on heightened support readiness for Indian market clients 15–31 October." },
+
+{ month:9, name:"BFCM preparation — client readiness window", date:"Oct 2026 (ongoing)", startDate:"2026-10-01", endDate:"2026-10-31",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","Shopify","Brightpearl"],
+  platforms:["Shopify","Brightpearl","Peoplevox","Amazon"],
+  markets:[],
+  desc:"October is the critical preparation window for BFCM. All Shopify client stores and integrations should be tested and finalised before the end of October. Code freeze should be planned for early November.",
+  impact:"Any integration issues discovered in October can still be resolved before BFCM. Issues discovered in November carry high risk.",
+  action:"Conduct BFCM readiness reviews with all clients by end of October. Test all Shopify integrations, discount/promotional logic, inventory sync accuracy and order flow. Plan client-specific code freeze dates for early November." },
+
+{ month:9, name:"Halloween", date:"Sat 31 Oct 2026", startDate:"2026-10-31",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","US","UK","CA","IE","AU","Amazon","eBay","Walmart","Etsy"],
+  platforms:["Amazon","Walmart","eBay","Etsy","Shopify"],
+  markets:["US","UK","CA","IE","AU"],
+  desc:"Growing retail event. Costumes, confectionery, décor and novelty items peak. TikTok Shop and Etsy strong.",
+  impact:"Standard uplift for relevant clients. Note this falls the day before BFCM prep month starts.",
+  action:"Standard monitoring. Confirm all client integrations are healthy as BFCM season begins." },
+
+// ═══ NOVEMBER ═══
+{ month:10, name:"Singles' Day (11.11)", date:"Wed 11 Nov 2026", startDate:"2026-11-11",
+  tier:"critical", isCritical:true,
+  filterKeys:["all","CN","SG","KR","JP","IN","Tmall","JD","critical"],
+  platforms:["Tmall/Taobao","JD.com","Pinduoduo","Shopee","Lazada"],
+  markets:["CN","SG","KR","JP","IN"],
+  desc:"The world's largest single-day ecommerce event. Tmall/JD.com pre-sale campaigns begin weeks in advance. The 11.11 moment releases pre-added cart items simultaneously — creating a colossal API spike.",
+  impact:"CN and SEA marketplace APIs experience extreme load on 11.11. Integration error rates for Tmall/JD.com connected clients will spike. Order volumes can be 10–50x normal for CN clients.",
+  action:"⚠️ CRITICAL EVENT for CN/SEA clients. No integration deployments 5–15 Nov for CN/SEA clients. Ensure high error tolerance and retry logic in integrations. Pre-position inventory sync to run at high frequency. Monitor dashboards actively on 11 Nov." },
+
+{ month:10, name:"Shopify/client code freeze — BFCM", date:"~10 Nov 2026 onwards", startDate:"2026-11-10", endDate:"2026-11-30",
+  tier:"platform", isCritical:true,
+  filterKeys:["all","platform","Shopify","critical"],
+  platforms:["Shopify","Brightpearl","Peoplevox"],
+  markets:[],
+  desc:"Code freeze for all Shopify client stores and integrations should be in place from approximately 10 November through to 5 December. This is industry best practice — even a small change can break checkout or inventory sync during BFCM. No theme edits, app installations, integration deployments or code changes without explicit sign-off.",
+  impact:"Any unplanned changes during BFCM directly risk client revenue. Shopify processes millions per minute at BFCM peak. An integration failure during this window is a major client incident.",
+  action:"⚠️ FREEZE PERIOD. Communicate clearly to all teams: no deployments to production BFCM-live clients from 10 Nov. Only critical bug fixes with full approval. Plan all changes for after 5 December." },
+
+{ month:10, name:"Black Friday", date:"Fri 27 Nov 2026", startDate:"2026-11-27",
+  tier:"critical", isCritical:true,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","Amazon","eBay","Etsy","Walmart","critical"],
+  platforms:["Amazon","eBay","Walmart","Etsy","Shopify","Brightpearl","Peoplevox","ShipBob","Mintsoft"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA"],
+  desc:"The world's biggest ecommerce event. For b.solutions clients, this is the highest-risk period of the year. Order volumes, API calls and integration throughput reach their annual maximum. Shopify processed $4.6 million per minute at peak BFCM 2024.",
+  impact:"Every integration running for every client is under maximum stress simultaneously. Brightpearl, Shopify, Amazon, eBay and all WMS/3PL integrations (Peoplevox, ShipBob, Mintsoft) will be processing at peak capacity. Any failure during this window has direct, immediate revenue impact for clients.",
+  action:"⚠️ HIGHEST PRIORITY EVENT. All integrations must be tested and stable before 10 Nov. No changes. All team members should be on support readiness from 26 Nov. Monitor all client integration dashboards actively. Have a documented incident response plan. Post-event debrief and clean-up scheduled for week of 30 Nov." },
+
+{ month:10, name:"Cyber Monday", date:"Mon 30 Nov 2026", startDate:"2026-11-30",
+  tier:"critical", isCritical:true,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","Amazon","eBay","Etsy","Walmart","critical"],
+  platforms:["Amazon","eBay","Walmart","Etsy","Shopify","Brightpearl"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA"],
+  desc:"Extends the BFCM weekend to Monday. Tech, software and digital products historically peak on Cyber Monday. The BFCM weekend (Thu–Mon) is now treated as one continuous event.",
+  impact:"Continued maximum-stress period for all integrations. Order backlogs from the weekend may still be processing.",
+  action:"⚠️ CRITICAL (continuation). Maintain all BFCM monitoring and support readiness through Monday. Begin post-BFCM integration health checks from Tuesday 1 Dec." },
+
+// ═══ DECEMBER ═══
+{ month:11, name:"Post-BFCM — code freeze lift / integration health check", date:"~1–5 Dec 2026", startDate:"2026-12-01", endDate:"2026-12-05",
+  tier:"platform", isCritical:false,
+  filterKeys:["all","platform","Shopify"],
+  platforms:["Shopify","Brightpearl","Peoplevox"],
+  markets:[],
+  desc:"Code freeze can be lifted from approximately 5 December. First priority after BFCM is a full integration health check — review all client pipelines for errors, backlogs or data issues that may have accumulated during peak.",
+  impact:"Data quality issues during BFCM (duplicate orders, sync gaps, inventory discrepancies) will surface in this window and need resolution before Christmas.",
+  action:"Run a systematic health check of all client integrations 1–5 Dec. Clear any order/inventory sync backlogs. Resolve data issues before they compound into the Christmas period." },
+
+{ month:11, name:"12.12 — SEA Mega Sale", date:"Sat 12 Dec 2026", startDate:"2026-12-12",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","SG","IN","CN","Shopee","Lazada"],
+  platforms:["Shopee","Lazada"],
+  markets:["SG","IN","CN"],
+  desc:"Southeast Asia's final major pre-Christmas event on Shopee and Lazada.",
+  impact:"SEA marketplace integrations will see elevated volumes.",
+  action:"Monitor Shopee/Lazada integration health for relevant clients." },
+
+{ month:11, name:"Christmas shipping cutoffs", date:"~15–22 Dec 2026", startDate:"2026-12-15", endDate:"2026-12-22",
+  tier:"critical", isCritical:true,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA","Amazon","Shopify","critical"],
+  platforms:["Amazon","Shopify","Peoplevox","ShipBob","Mintsoft","Royal Mail"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA"],
+  desc:"Carrier shipping cutoff deadlines fall 15–22 December across markets. Last-minute ordering surges to beat cutoffs create order spikes. Missed cutoffs lead to a wave of customer service issues.",
+  impact:"Order volume spikes sharply around shipping cutoffs as consumers rush to beat deadlines. Fulfilment integration throughput (Peoplevox, ShipBob, Mintsoft) is at maximum. Any order processing delays during cutoff week translate directly into missed Christmas deliveries and client customer service incidents.",
+  action:"⚠️ HIGH PRIORITY. Ensure all WMS/3PL integrations are processing orders without delay from 15 Dec. Monitor Peoplevox, ShipBob and Mintsoft integration queues actively. Confirm shipping cutoff dates are correctly communicated in client stores. No integration changes 15–24 Dec." },
+
+{ month:11, name:"Christmas Day", date:"Fri 25 Dec 2026", startDate:"2026-12-25",
+  tier:"standard", isCritical:false,
+  filterKeys:["all","US","UK","CA","AU","NZ","DE","IE","ZA"],
+  platforms:["Amazon","Shopify"],
+  markets:["US","UK","CA","AU","NZ","DE","IE","ZA"],
+  desc:"Peak retail season. Gift card redemption and returns surge immediately after Christmas.",
+  impact:"Low order processing volume on Christmas Day itself; post-Christmas returns and exchanges begin immediately on 26 Dec.",
+  action:"Ensure returns and exchange integration flows are working cleanly going into Christmas." },
+
+{ month:11, name:"Boxing Day sales (UK / AU / CA / NZ)", date:"Sat 26 Dec 2026", startDate:"2026-12-26",
+  tier:"high", isCritical:false,
+  filterKeys:["all","UK","AU","CA","NZ","IE","Amazon","eBay","ASOS"],
+  platforms:["Amazon UK","eBay","ASOS","Shopify"],
+  markets:["UK","AU","CA","NZ","IE"],
+  desc:"Major post-Christmas sales event across Commonwealth markets. Fashion, electronics and home goods clearance drives strong volume.",
+  impact:"UK/AU/CA clients will see significant Boxing Day sale volumes. Order processing integrations will be busy.",
+  action:"Ensure order and inventory integrations are healthy for Boxing Day. Monitor for post-Christmas returns and gift-card redemption transaction spikes." },
+
+{ month:11, name:"UK VAT Q4 return due (Oct–Dec quarter)", date:"7 Feb 2027", startDate:"2027-02-07",
+  tier:"financial", isCritical:false,
+  filterKeys:["all","financial","UK","IE"],
+  platforms:["Sage","Xero","QuickBooks","NetSuite"],
+  markets:["UK","IE"],
+  desc:"VAT return and payment due for UK businesses with a quarterly period ending 31 December 2026. Filing deadline: 7 February 2027. This covers the BFCM and Christmas period — the highest volume quarter.",
+  impact:"Q4 VAT returns cover the peak trading period, meaning transaction volumes in accounting systems are at their highest. Any integration data issues during BFCM/Christmas will appear here.",
+  action:"Ensure UK client accounting integrations are clean after peak season. Flag to clients that Q4 VAT reconciliation will be more complex than other quarters due to peak volume." },
+];
+
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const TIER_LABELS={critical:"Critical",high:"High",standard:"Standard",platform:"Platform / integration",financial:"Financial / compliance"};
+let activeFilter="all";
+let openEventIdx=null;
+let countdownOpen=true;
+
+function today(){return new Date();}
+
+function daysUntil(dateStr){
+  const t=today();
+  t.setHours(0,0,0,0);
+  const d=new Date(dateStr);
+  d.setHours(0,0,0,0);
+  return Math.round((d-t)/(1000*60*60*24));
+}
+
+function renderCountdown(){
+  const body=document.getElementById('countdownBody');
+  body.innerHTML='';
+  const now=today();
+  now.setHours(0,0,0,0);
+  const horizon=new Date(now);
+  horizon.setDate(horizon.getDate()+60);
+  const upcoming=EVENTS_DATA.filter(e=>{
+    const s=new Date(e.startDate);
+    s.setHours(0,0,0,0);
+    return s>=now && s<=horizon;
+  }).sort((a,b)=>new Date(a.startDate)-new Date(b.startDate));
+  if(!upcoming.length){
+    body.innerHTML='<div style="padding:8px 0;font-size:12px;color:#9999BB;">No events in the next 60 days.</div>';
+    return;
+  }
+  upcoming.slice(0,8).forEach(ev=>{
+    const days=daysUntil(ev.startDate);
+    const idx=EVENTS_DATA.indexOf(ev);
+    const urgencyClass=days<=7?'urgent':days<=21?'soon':'upcoming';
+    const labelClass='label-'+ev.tier;
+    const dayLabel=days===0?'Today':days===1?'Tomorrow':days+' days';
+    const card=document.createElement('div');
+    card.className='countdown-card';
+    card.onclick=()=>openModal(idx);
+    card.innerHTML=`<div class="countdown-days ${urgencyClass}">${dayLabel}</div>
+      <div class="countdown-info">
+        <div class="countdown-event">${ev.name}</div>
+        <div class="countdown-date">${ev.date}</div>
+        <span class="countdown-label ${labelClass}">${TIER_LABELS[ev.tier]}</span>
+      </div>`;
+    body.appendChild(card);
+  });
+}
+
+function toggleCountdown(){
+  countdownOpen=!countdownOpen;
+  document.getElementById('countdownBody').style.display=countdownOpen?'flex':'none';
+  document.getElementById('countdownHint').textContent=countdownOpen?'▾ collapse':'▸ expand';
+}
+
+function setFilter(key){
+  activeFilter=key;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    if(b.getAttribute('onclick')===`setFilter('${key}')`) b.classList.add('active');
+  });
+  if(key==='all') document.querySelector('.all-btn').classList.add('active');
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+  MONTHS.forEach((month,idx)=>{
+    let events=EVENTS_DATA.filter(e=>e.month===idx);
+    if(activeFilter==='critical') events=events.filter(e=>e.isCritical);
+    else if(activeFilter==='platform') events=events.filter(e=>e.tier==='platform');
+    else if(activeFilter==='financial') events=events.filter(e=>e.tier==='financial');
+    else if(activeFilter!=='all') events=events.filter(e=>e.filterKeys.includes(activeFilter));
+    const card=document.createElement('div');
+    card.className='month-card';
+    let inner=`<div class="month-header">${month}</div><div class="event-list">`;
+    if(!events.length){
+      inner+='<div class="no-events">No events for this filter</div>';
+    } else {
+      events.forEach(ev=>{
+        const globalIdx=EVENTS_DATA.indexOf(ev);
+        const star=ev.isCritical?'<span class="critical-star">★</span>':'';
+        inner+=`<div class="event-item ${ev.tier}" onclick="openModal(${globalIdx})">
+          <div class="event-name">${star}${ev.name}</div>
+          <div class="event-date">${ev.date}</div>
+        </div>`;
+      });
+    }
+    inner+='</div>';
+    card.innerHTML=inner;
+    grid.appendChild(card);
+  });
+}
+
+function openModal(idx){
+  openEventIdx=idx;
+  const ev=EVENTS_DATA[idx];
+  document.getElementById('modalTitle').textContent=ev.name;
+  document.getElementById('modalDate').textContent=ev.date;
+  const tier=document.getElementById('modalTier');
+  tier.className=`tier-badge ${ev.tier}`;
+  const dot=document.createElement('span');
+  dot.className=`dot dot-${ev.tier}`;
+  tier.innerHTML='';
+  tier.appendChild(dot);
+  tier.appendChild(document.createTextNode(' '+TIER_LABELS[ev.tier]));
+  document.getElementById('modalDesc').textContent=ev.desc||'';
+  document.getElementById('modalDescSection').style.display=ev.desc?'':'none';
+  document.getElementById('modalImpact').textContent=ev.impact||'';
+  document.getElementById('modalImpactSection').style.display=ev.impact?'':'none';
+  document.getElementById('modalAction').textContent=ev.action||'';
+  document.getElementById('modalActionSection').style.display=ev.action?'':'none';
+  const mEl=document.getElementById('modalMarkets');
+  mEl.innerHTML='';
+  (ev.markets||[]).forEach(m=>{const t=document.createElement('span');t.className='tag';t.textContent=m;mEl.appendChild(t);});
+  document.getElementById('modalMarketsSection').style.display=(ev.markets||[]).length?'':'none';
+  const pEl=document.getElementById('modalPlatforms');
+  pEl.innerHTML='';
+  (ev.platforms||[]).forEach(p=>{const t=document.createElement('span');t.className='tag platform-tag';t.textContent=p;pEl.appendChild(t);});
+  document.getElementById('modalPlatformsSection').style.display=(ev.platforms||[]).length?'':'none';
+  const tcBtn=document.getElementById('toggleCriticalBtn');
+  if(ev.isCritical){tcBtn.textContent='Remove critical flag';tcBtn.className='toggle-critical-btn is-critical';}
+  else{tcBtn.textContent='Mark as critical ★';tcBtn.className='toggle-critical-btn';}
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function toggleCritical(){
+  if(openEventIdx===null)return;
+  EVENTS_DATA[openEventIdx].isCritical=!EVENTS_DATA[openEventIdx].isCritical;
+  openModal(openEventIdx);
+  renderCalendar();
+  renderCountdown();
+}
+
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');openEventIdx=null;}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+
+// ── ICS EXPORT ───────────────────────────────────────────────────────────────
+function toICSDate(dateStr){return dateStr.replace(/-/g,'');}
+function buildICS(events){
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//b.solutions//Retail Calendar 2026//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  events.forEach(ev=>{
+    const uid=ev.name.replace(/\W+/g,'-').toLowerCase()+'-'+ev.startDate+'@bsolutions';
+    const desc=(ev.impact||'')+(ev.action?'\\n\\nActions: '+ev.action:'');
+    const start=toICSDate(ev.startDate);
+    const end=ev.endDate?toICSDate(ev.endDate):start;
+    lines.push("BEGIN:VEVENT");
+    lines.push("UID:"+uid);
+    lines.push("DTSTART;VALUE=DATE:"+start);
+    lines.push("DTEND;VALUE=DATE:"+end);
+    lines.push("SUMMARY:[b.solutions] "+ev.name);
+    lines.push("DESCRIPTION:"+desc.replace(/\n/g,'\\n').replace(/,/g,'\\,'));
+    lines.push("CATEGORIES:"+TIER_LABELS[ev.tier]);
+    if(ev.isCritical)lines.push("PRIORITY:1");
+    lines.push("END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+function download(content,filename){
+  const blob=new Blob([content],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+}
+function exportICS(){download(buildICS(EVENTS_DATA.filter(e=>e.isCritical)),'bsolutions_critical_2026.ics');}
+function exportAllICS(){download(buildICS(EVENTS_DATA),'bsolutions_all_events_2026.ics');}
+function exportSingleICS(){if(openEventIdx!==null)download(buildICS([EVENTS_DATA[openEventIdx]]),'bsolutions_event.ics');}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderCalendar();
+renderCountdown();
+</script>
+</body>
+</html>
