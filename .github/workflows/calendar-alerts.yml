@@ -1,0 +1,199 @@
+name: b.solutions Calendar Alerts
+
+on:
+  schedule:
+    # Runs every morning at 7am UTC (8am UK time in winter, adjust for BST)
+    - cron: '0 7 * * *'
+  workflow_dispatch: # allows manual trigger from GitHub Actions tab
+
+jobs:
+  send-alerts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install nodemailer
+        run: npm install nodemailer
+        working-directory: /tmp
+
+      - name: Check upcoming events and send email
+        uses: actions/github-script@v7
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        with:
+          script: |
+            const nodemailer = require('/tmp/node_modules/nodemailer');
+
+            // ── EVENT DATA ──────────────────────────────────────────────────
+            const EVENTS = [
+              { name:"New Year's Day sales", date:"1–7 Jan 2026", startDate:"2026-01-01", tier:"high", isCritical:false, action:"Ensure client integrations are running cleanly after the Christmas peak." },
+              { name:"NetSuite 2026.1 Release Preview opens", date:"~Jan 2026", startDate:"2026-01-15", tier:"platform", isCritical:false, action:"Request Release Preview access for NetSuite client accounts." },
+              { name:"Australia Day", date:"Mon 26 Jan 2026", startDate:"2026-01-26", tier:"standard", isCritical:false, action:"Flag to AU/NZ clients running promotions." },
+              { name:"Valentine's Day", date:"Sat 14 Feb 2026", startDate:"2026-02-14", tier:"high", isCritical:false, action:"Check inventory sync timing for clients selling personalised or limited-stock gift items." },
+              { name:"Chinese New Year — Year of the Horse", date:"Tue 17 Feb 2026", startDate:"2026-02-17", tier:"high", isCritical:false, action:"Warn clients with CN supply chains to pre-position stock before 10 Feb." },
+              { name:"Ramadan begins", date:"Wed 18 Feb 2026", startDate:"2026-02-18", tier:"standard", isCritical:false, action:"Ensure Shopee/Lazada integrations for relevant clients are healthy." },
+              { name:"NetSuite 2026.1 production rollout begins", date:"Mid-Feb – end Apr 2026", startDate:"2026-02-15", tier:"platform", isCritical:false, action:"Check upgrade dates for all NetSuite client accounts. Test integrations in Release Preview." },
+              { name:"Shopify API 2026-04 preview opens", date:"Feb 2026", startDate:"2026-02-01", tier:"platform", isCritical:false, action:"Audit all Shopify app integrations for use of checkout metafields and discount fields." },
+              { name:"UK Financial Year End (approaches)", date:"Fri 5 Apr 2026", startDate:"2026-03-01", tier:"financial", isCritical:false, action:"Proactively check in with UK-based clients about year-end accounting needs." },
+              { name:"Mothering Sunday (UK/IE)", date:"Sun 15 Mar 2026", startDate:"2026-03-15", tier:"standard", isCritical:false, action:"No specific integration action required." },
+              { name:"Eid al-Fitr (end of Ramadan)", date:"~Fri 20 Mar 2026", startDate:"2026-03-20", tier:"high", isCritical:false, action:"Confirm SEA marketplace integrations are processing orders without delays before Eid." },
+              { name:"White Day (Japan / S. Korea)", date:"Sat 14 Mar 2026", startDate:"2026-03-14", tier:"standard", isCritical:false, action:"No specific action for most clients." },
+              { name:"Holi", date:"~Fri 20 Mar 2026", startDate:"2026-03-20", tier:"standard", isCritical:false, action:"Monitor Flipkart/Meesho integration health for Indian market clients." },
+              { name:"Shopify API 2026-04 live / expiring tokens mandatory", date:"Wed 1 Apr 2026", startDate:"2026-04-01", tier:"platform", isCritical:true, action:"All Shopify integrations must be updated before this date. Confirm expiring token flows are implemented." },
+              { name:"UK Financial Year End — 5 April", date:"Sun 5 Apr 2026", startDate:"2026-04-05", tier:"financial", isCritical:false, action:"Ensure all accounting integrations for UK clients are clean going into year-end." },
+              { name:"Good Friday", date:"Fri 3 Apr 2026", startDate:"2026-04-03", tier:"high", isCritical:false, action:"Confirm all client integration pipelines are healthy entering Easter weekend. No deployments." },
+              { name:"Easter Sunday / Monday", date:"Sun–Mon 5–6 Apr 2026", startDate:"2026-04-05", tier:"high", isCritical:false, action:"No deployments Easter Friday–Monday. Monitor WMS/3PL integrations for queue backlogs." },
+              { name:"Anzac Day (AU/NZ)", date:"Sat 25 Apr 2026", startDate:"2026-04-25", tier:"standard", isCritical:false, action:"Flag to AU/NZ clients. No specific integration action." },
+              { name:"UK VAT Q1 return due", date:"Thu 7 May 2026", startDate:"2026-05-07", tier:"financial", isCritical:false, action:"Proactively check UK client accounting integration health for Jan–Mar period." },
+              { name:"Mother's Day (US/CA/AU/most EU)", date:"Sun 10 May 2026", startDate:"2026-05-10", tier:"high", isCritical:false, action:"Monitor order processing pipelines for Etsy-connected clients 7–10 May." },
+              { name:"Golden Week (Japan)", date:"29 Apr – 5 May 2026", startDate:"2026-04-29", tier:"standard", isCritical:false, action:"Notify relevant clients of expected JP logistics delays." },
+              { name:"Memorial Day (US)", date:"Mon 25 May 2026", startDate:"2026-05-25", tier:"standard", isCritical:false, action:"Standard monitoring for US-market clients." },
+              { name:"Amazon Prime Day", date:"23–26 Jun 2026", startDate:"2026-06-23", tier:"critical", isCritical:true, action:"Ensure all Amazon integrations are healthy by 18 June. No changes to Amazon integrations 20–29 June." },
+              { name:"Shopify code freeze (Prime Day)", date:"~20–29 Jun 2026", startDate:"2026-06-20", tier:"platform", isCritical:false, action:"No Shopify deployments for active clients 20–29 June without explicit sign-off." },
+              { name:"618 Festival (China e-commerce)", date:"1–18 Jun 2026", startDate:"2026-06-01", tier:"high", isCritical:false, action:"Ensure CN marketplace integrations have sufficient rate limit headroom." },
+              { name:"Father's Day (UK/IE/AU/NZ + US/CA)", date:"Sun 21 Jun 2026", startDate:"2026-06-21", tier:"standard", isCritical:false, action:"Standard monitoring." },
+              { name:"UK VAT Q2 return due", date:"Fri 7 Aug 2026", startDate:"2026-08-07", tier:"financial", isCritical:false, action:"Review accounting integration reconciliation for Q2 for UK clients." },
+              { name:"Back to school (US/CA)", date:"Aug 2026", startDate:"2026-08-01", tier:"high", isCritical:false, action:"Monitor US client integration pipelines through August." },
+              { name:"Back to school (UK/EU)", date:"Late Aug – early Sep 2026", startDate:"2026-08-17", tier:"standard", isCritical:false, action:"Standard monitoring." },
+              { name:"NetSuite 2026.2 release preview opens", date:"~Aug 2026", startDate:"2026-08-01", tier:"platform", isCritical:false, action:"Request Release Preview access for NetSuite client accounts in August." },
+              { name:"Labor Day (US/CA)", date:"Mon 7 Sep 2026", startDate:"2026-09-07", tier:"standard", isCritical:false, action:"Standard monitoring for US-market clients." },
+              { name:"NetSuite 2026.2 production rollout", date:"Sep–Oct 2026", startDate:"2026-09-15", tier:"platform", isCritical:false, action:"Monitor NetSuite client account upgrade dates. Avoid deployments within 2 weeks of upgrade." },
+              { name:"Mid-Autumn Festival", date:"~Fri 25 Sep 2026", startDate:"2026-09-25", tier:"standard", isCritical:false, action:"Standard monitoring." },
+              { name:"UK VAT Q3 return due", date:"Sat 7 Nov 2026", startDate:"2026-11-07", tier:"financial", isCritical:false, action:"Check UK client accounting integration health in October ahead of this deadline." },
+              { name:"Golden Week (China)", date:"1–7 Oct 2026", startDate:"2026-10-01", tier:"standard", isCritical:false, action:"Do not schedule CN integration deployments 1–7 Oct." },
+              { name:"BFCM preparation — client readiness window", date:"Oct 2026", startDate:"2026-10-01", tier:"platform", isCritical:false, action:"Conduct BFCM readiness reviews with all clients by end of October." },
+              { name:"Halloween", date:"Sat 31 Oct 2026", startDate:"2026-10-31", tier:"standard", isCritical:false, action:"Confirm all client integrations are healthy as BFCM season begins." },
+              { name:"Diwali", date:"Sun 8 Nov 2026", startDate:"2026-11-06", tier:"high", isCritical:false, action:"Ensure Flipkart and Amazon IN integrations are robust and monitored from late October." },
+              { name:"Singles' Day (11.11)", date:"Wed 11 Nov 2026", startDate:"2026-11-11", tier:"critical", isCritical:true, action:"No integration deployments 5–15 Nov for CN/SEA clients. Monitor dashboards actively on 11 Nov." },
+              { name:"Shopify/client code freeze — BFCM", date:"~10 Nov 2026 onwards", startDate:"2026-11-10", tier:"platform", isCritical:true, action:"No deployments to production BFCM-live clients from 10 Nov. Only critical bug fixes with full approval." },
+              { name:"Black Friday", date:"Fri 27 Nov 2026", startDate:"2026-11-27", tier:"critical", isCritical:true, action:"All integrations must be tested and stable before 10 Nov. All team members on support readiness from 26 Nov." },
+              { name:"Cyber Monday", date:"Mon 30 Nov 2026", startDate:"2026-11-30", tier:"critical", isCritical:true, action:"Maintain all BFCM monitoring and support readiness through Monday." },
+              { name:"Post-BFCM integration health check", date:"~1–5 Dec 2026", startDate:"2026-12-01", tier:"platform", isCritical:false, action:"Run a systematic health check of all client integrations 1–5 Dec." },
+              { name:"12.12 — SEA Mega Sale", date:"Sat 12 Dec 2026", startDate:"2026-12-12", tier:"standard", isCritical:false, action:"Monitor Shopee/Lazada integration health for relevant clients." },
+              { name:"Christmas shipping cutoffs", date:"~15–22 Dec 2026", startDate:"2026-12-15", tier:"critical", isCritical:true, action:"Ensure all WMS/3PL integrations are processing orders without delay from 15 Dec. No changes 15–24 Dec." },
+              { name:"Boxing Day sales (UK/AU/CA/NZ)", date:"Sat 26 Dec 2026", startDate:"2026-12-26", tier:"high", isCritical:false, action:"Ensure order and inventory integrations are healthy for Boxing Day." },
+              { name:"UK VAT Q4 return due", date:"7 Feb 2027", startDate:"2027-02-07", tier:"financial", isCritical:false, action:"Ensure UK client accounting integrations are clean after peak season." },
+            ];
+
+            const TIER_LABELS = {
+              critical: "🔴 Critical",
+              high: "🟡 High",
+              standard: "🟢 Standard",
+              platform: "🔵 Platform / Integration",
+              financial: "🟣 Financial / Compliance"
+            };
+
+            // ── DATE LOGIC ──────────────────────────────────────────────────
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            function daysUntil(dateStr) {
+              const d = new Date(dateStr);
+              d.setHours(0,0,0,0);
+              return Math.round((d - today) / (1000 * 60 * 60 * 24));
+            }
+
+            const windows = [30, 14, 7];
+            const alerts = [];
+
+            EVENTS.forEach(ev => {
+              const days = daysUntil(ev.startDate);
+              if (windows.includes(days)) {
+                alerts.push({ ...ev, daysUntil: days });
+              }
+            });
+
+            if (alerts.length === 0) {
+              console.log('No events at 7, 14 or 30 day mark today. No email sent.');
+              return;
+            }
+
+            // ── BUILD EMAIL ─────────────────────────────────────────────────
+            const todayStr = today.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+            let htmlBody = `<!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8">
+            <style>
+              body{font-family:Arial,sans-serif;background:#F4F4F7;margin:0;padding:20px}
+              .container{max-width:600px;margin:0 auto}
+              .header{background:#26284A;color:#fff;padding:20px 24px;border-radius:10px 10px 0 0}
+              .header h1{font-size:18px;font-weight:600;margin:0}
+              .header p{font-size:12px;color:rgba(255,255,255,0.6);margin:4px 0 0}
+              .body{background:#fff;padding:20px 24px;border-radius:0 0 10px 10px;border:1px solid #E0E0EA;border-top:none}
+              .event-card{border-radius:8px;padding:14px 16px;margin-bottom:12px;border-left:4px solid transparent}
+              .event-card.critical{background:#FFF0EC;border-left-color:#FC664A}
+              .event-card.high{background:#FEFBF0;border-left-color:#F7D08A}
+              .event-card.standard{background:#E8F8F8;border-left-color:#00A9A5}
+              .event-card.platform{background:#F2F2FC;border-left-color:#7070D0}
+              .event-card.financial{background:#EEFAF4;border-left-color:#40B080}
+              .days-badge{font-size:11px;font-weight:600;color:#fff;background:#26284A;border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:6px}
+              .days-badge.urgent{background:#FC664A}
+              .days-badge.soon{background:#C07000}
+              .event-name{font-size:15px;font-weight:600;color:#26284A;margin:0 0 4px}
+              .event-date{font-size:12px;color:#8888AA;margin:0 0 6px}
+              .event-tier{font-size:11px;color:#6666AA;margin:0 0 8px}
+              .action-box{background:rgba(38,40,74,0.05);border-radius:6px;padding:8px 10px;font-size:12px;color:#3A3A5A;line-height:1.5}
+              .action-label{font-weight:600;color:#26284A}
+              .footer{text-align:center;font-size:11px;color:#AAAACC;padding:16px 0 0}
+              .footer a{color:#2E4E79;text-decoration:none}
+              .section-header{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#AAAACC;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #F0F0F8}
+            </style>
+            </head>
+            <body>
+            <div class="container">
+              <div class="header">
+                <h1>b.solutions — Calendar Alert</h1>
+                <p>${todayStr} &nbsp;·&nbsp; ${alerts.length} upcoming event${alerts.length > 1 ? 's' : ''} requiring attention</p>
+              </div>
+              <div class="body">`;
+
+            [7, 14, 30].forEach(window => {
+              const windowAlerts = alerts.filter(a => a.daysUntil === window);
+              if (!windowAlerts.length) return;
+              const label = window === 7 ? '⚠️ In 7 days' : window === 14 ? '📅 In 14 days' : '🗓️ In 30 days';
+              htmlBody += `<div class="section-header">${label}</div>`;
+              windowAlerts.forEach(ev => {
+                const badgeClass = window === 7 ? 'urgent' : window === 14 ? 'soon' : '';
+                htmlBody += `
+                <div class="event-card ${ev.tier}">
+                  <span class="days-badge ${badgeClass}">${window} days away</span>
+                  <div class="event-name">${ev.name}</div>
+                  <div class="event-date">📆 ${ev.date}</div>
+                  <div class="event-tier">${TIER_LABELS[ev.tier]}</div>
+                  <div class="action-box"><span class="action-label">Action: </span>${ev.action}</div>
+                </div>`;
+              });
+            });
+
+            htmlBody += `
+                <div class="footer">
+                  <p>b.solutions internal calendar &nbsp;·&nbsp; <a href="https://tonyb85.github.io/bsolutions-calendar/">View full calendar</a></p>
+                </div>
+              </div>
+            </div>
+            </body></html>`;
+
+            // ── SEND EMAIL ──────────────────────────────────────────────────
+            const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD,
+              },
+            });
+
+            const subject = alerts.some(a => a.daysUntil === 7)
+              ? `🔴 b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===7).length} event(s) in 7 days`
+              : alerts.some(a => a.daysUntil === 14)
+              ? `🟡 b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===14).length} event(s) in 14 days`
+              : `🗓️ b.solutions Calendar — ${alerts.filter(a=>a.daysUntil===30).length} event(s) in 30 days`;
+
+            await transporter.sendMail({
+              from: `"b.solutions Calendar" <${process.env.GMAIL_USER}>`,
+              to: process.env.GMAIL_USER,
+              subject: subject,
+              html: htmlBody,
+            });
+
+            console.log(`✓ Email sent successfully. ${alerts.length} alert(s) included.`);
